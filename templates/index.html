@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Attention Detection System</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f7f7f7; }
+        .container { max-width: 500px; margin: 40px auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 8px #ccc; }
+        h1 { color: #4B8BBE; text-align: center; }
+        #result { margin-top: 20px; text-align: center; font-size: 1.2rem; }
+        #preview { display: block; margin: 20px auto; max-width: 100%; border-radius: 8px; }
+        .btn { background: #4B8BBE; color: #fff; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        .btn:disabled { background: #aaa; }
+    </style>
+</head>
+<body>
+    <div class="main-bg">
+        <div class="header">
+            <span class="icon">🎓</span>
+            <span class="title">Student Attention Detection System</span>
+            <div class="subtitle">AI-powered real-time student attention detection</div>
+        </div>
+        <div class="card-row">
+            <div class="card">
+                <div class="card-title">Live Camera</div>
+                <div class="card-desc">Start real-time student attention detection using your camera with instant analysis.</div>
+                <div class="video-box">
+                    <video id="video" width="320" height="240" autoplay style="border-radius:12px; background:#222;"></video>
+                </div>
+                <canvas id="canvas" width="224" height="224" style="display:none;"></canvas>
+                <button class="live-btn" id="predictBtn">Start Live Detection</button>
+                <div id="result" class="result-box"></div>
+            </div>
+        </div>
+    </div>
+    <style>
+        body { background: #f3f4fa; margin: 0; font-family: 'Segoe UI', Arial, sans-serif; }
+        .main-bg { max-width: 700px; margin: 40px auto; padding: 0 10px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .icon { font-size: 2.5rem; vertical-align: middle; }
+        .title { font-size: 2.2rem; font-weight: 700; color: #4B3FE4; margin-left: 10px; }
+        .subtitle { color: #6c6c8a; font-size: 1.1rem; margin-top: 8px; }
+        .card-row { display: flex; justify-content: center; }
+        .card {
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 4px 24px #d1d1e0;
+            padding: 32px 28px 28px 28px;
+            width: 370px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .card-title { font-size: 1.3rem; font-weight: 600; color: #4B3FE4; margin-bottom: 8px; }
+        .card-desc { color: #6c6c8a; font-size: 1rem; margin-bottom: 18px; text-align: center; }
+        .video-box { margin-bottom: 18px; }
+        .live-btn {
+            background: linear-gradient(90deg, #ff6a5b 0%, #ffb86b 100%);
+            color: #fff;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 18px;
+            box-shadow: 0 2px 8px #e0b6b6;
+            transition: background 0.2s;
+        }
+        .live-btn:active { background: linear-gradient(90deg, #ffb86b 0%, #ff6a5b 100%); }
+        .result-box {
+            font-size: 1.1rem;
+            color: #222;
+            text-align: center;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+    </style>
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const predictBtn = document.getElementById('predictBtn');
+        const result = document.getElementById('result');
+        let streamStarted = false;
+
+        // Access webcam
+        function startWebcam() {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    video.srcObject = stream;
+                    streamStarted = true;
+                })
+                .catch(err => {
+                    result.innerText = 'Could not access webcam.';
+                });
+        }
+
+        predictBtn.onclick = function() {
+            if (!streamStarted) {
+                startWebcam();
+                predictBtn.innerText = 'Analyze Current Frame';
+                result.innerText = '';
+                return;
+            }
+            canvas.getContext('2d').drawImage(video, 0, 0, 224, 224);
+            const frameData = canvas.toDataURL('image/jpeg');
+            result.innerText = 'Analyzing...';
+            fetch('/predict_frame', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ frame: frameData })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.prediction) {
+                    result.innerHTML = `<span style='color:#4B3FE4;font-weight:600;'>Prediction:</span> ${data.prediction}<br><span style='color:#ff6a5b;font-weight:600;'>Confidence:</span> ${data.confidence}`;
+                } else {
+                    result.innerText = data.error || 'Error occurred.';
+                }
+            })
+            .catch(() => {
+                result.innerText = 'Error occurred.';
+            });
+        };
+    </script>
+</body>
+</html>
