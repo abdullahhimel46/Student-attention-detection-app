@@ -1,6 +1,6 @@
 # Student Attention Detection App
 
-A Streamlit application that uses a TensorFlow image-classification model to identify whether a student is **Attentive** or **Not Attentive**. Images can be uploaded or captured with a webcam, and the app displays the prediction confidence.
+A real time attention detection application that uses a TensorFlow image-classification model to identify whether a student is **Attentive** or **Not Attentive**. Images can be uploaded or captured with a webcam, and the app displays the prediction confidence.
 
 ## Features
 
